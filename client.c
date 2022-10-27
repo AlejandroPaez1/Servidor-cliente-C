@@ -11,16 +11,16 @@ int fcons1;
 char txt[2];
 //?Funcion principal
 int main()
+
 {
+    int menu;
+    while (1)
+    {
     remove("/home/alejandro/Escritorio/carpeta/SQLDATA1");
     remove("/home/alejandro/Escritorio/carpeta/FIFOCONSULTA10");
     remove("/home/alejandro/Escritorio/carpeta/listaclientes1");
     remove("/home/alejandro/Escritorio/carpeta/sqldelete1");
     remove("/home/alejandro/Escritorio/carpeta/updatesql");
-
-    int menu;
-    while (1)
-    {
 
         printf("\n|-----------------|");
         printf("\n|    * Incio *    |");
@@ -47,9 +47,9 @@ int main()
             break;
         // Articulos
         case 2:
-            // menuArticulos();
-            break;
         // Facturas
+             menuFacturas();
+            break;
         case 3:
 
             break;
@@ -104,8 +104,87 @@ int menuCliente()
         // showClientes();
         updateDatos();
         break;
+    case 5:
+        showtables();
+    break;
     }
 }
+
+
+
+int menuFacturas(){
+int opcion;
+
+        printf("\n|--------------------------------------|");
+        printf("\n|         * Submenu Facturas *         |");
+        printf("\n|--------------------------------------|");
+        printf("\n| 1.insertar factura | 4. modificar    |");
+        printf("\n| 2.Actualizar       | 5. mostrar fact |");
+        printf("\n| 3.Eliminar factura | 6. regresar     |");
+        printf("\n|--------------------|-----------------|");
+        printf("\n\n Escoja una opcion: ");
+        scanf("%d", &opcion);
+
+        switch (opcion)
+        {
+        case 1:
+            printf("Insertar facturas");
+        addFactura();
+            
+
+            break;
+        case 2:
+            printf("Actualizar facturas");
+            break;
+        case 3:
+            printf("Eliminacion facturas");
+            break;
+        case 4:
+            printf("modificcar");
+            break;
+        case 5:
+            printf("mostrar");
+            break;
+
+        default:
+            printf("\nOpcion no disponible\n");
+            break;
+        }
+
+
+}
+int addFactura(){
+
+    fflush(stdin);
+
+    char importe_total[50];
+    char importe_letra[50];
+    char id_cliente[50];
+    
+    char sql[1024], sql2[900], er[5], sqltel[900];
+    int SQLDAT1, s2, ier, phone;
+
+    puts("\nEscribe la factura: ");
+    printf("escribe el importe total:\n");
+    scanf("%s", &importe_total);
+
+    printf("el importe letra:\n");
+    scanf("%s", &importe_letra);
+
+    printf("Id de cliente al que se va aumentar:\n");
+    scanf("%s", &id_cliente);
+
+    SQLDAT1 = open("SQLDATA1", O_WRONLY);
+
+    sprintf(sql,"INSERT INTO facturas(importe_total,importe_letra,id_cliente) VALUES ('%s','%s',%s);",importe_total,importe_letra,id_cliente);
+    printf("Instruccion:%s\n", sql);
+
+    // sprintf(sql, "SELECT insertar_cliente ('%s','%s' ,'%s', '%s', '%s', '%s')",nombre,apellido,rfc,direccion,edad,pais);
+    write(SQLDAT1, sql, sizeof(sql));
+    close(SQLDAT1);
+
+}
+
 
 int addCliente()
 {
@@ -280,12 +359,10 @@ int updateDatos()
         printf("\n Escribe el Telefono nuevo  :\n");
         scanf("%s", &data);
         sprintf(sql, "UPDATE clientes SET telefono = '%s' WHERE id_cliente = %s", data, id_cliente);
-
         fflush(stdin);
         break;
 
     }
-
 
         //printf("%s\n",sql);
         fd1=open("updatesql",O_WRONLY);
@@ -293,3 +370,29 @@ int updateDatos()
         close(fd1);
     
 }
+
+int showtables(){
+    char cad[2024];
+    char id_cliente[20];
+
+    for (int i = 0; i < 100; i++)
+    {
+        // reiniciar la cadena a 0
+        cad[i] = '\0';
+    }
+
+    fcons1 = open("FIFOCONSULTA10", O_WRONLY);
+    sprintf(cad, "SELECT * FROM clientes;");
+    // printf("\n consulta que va es:\n %s",cad);
+
+    write(fcons1, cad, sizeof(cad));
+    close(fcons1);
+
+    fd1 = open("listaclientes1", O_RDONLY);
+    read(fd1, cad, sizeof(cad));
+
+    printf("  id |  nombre | apellido |  RFC   |  Direcccion  | edad  |  pais | telefono  \n");
+    printf("%s\n", cad);
+    close(fd1);
+}
+

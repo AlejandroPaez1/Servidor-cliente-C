@@ -48,13 +48,12 @@ int main()
             //*clientes
         case 1:
             printf("Entrando a la seccion de clientes\n");
-
             menuCliente();
             break;
         //*Articulos
         case 2:
             printf("Entrando a la seccion de articulos\n");
-            // menuArticulo();
+            menuFactura();
             break;
         //*Facturas
         case 3:
@@ -63,6 +62,10 @@ int main()
         }
     }
 }
+
+
+
+
 
 int menuCliente()
 {
@@ -106,6 +109,37 @@ int menuCliente()
         break;
     }
 }
+
+int menuFactura(){
+       mkfifo("SQLDATA1", 0666);
+
+    printf("Entrando al servicio de añadir clientes/facturas\n");
+    con = PQsetdbLogin(host, port, NULL, NULL, dataBase, user, passwd); //*abro conexion
+
+    char sql2[1234], sqltel[900], er[5];
+    int ier, error, tel;
+
+    SQLDAT1 = open("SQLDATA1", O_RDONLY);
+
+    read(SQLDAT1, sql2, sizeof(sql2));
+
+    printf(":::::%s \n", sql2);
+    con = PQexec(con, sql2);
+    close(SQLDAT1);
+
+    if (PQstatus(con) != CONNECTION_OK)
+    {
+        printf("Error de consulta valores invalido\n");
+    }
+    else
+    {
+        printf("Query exitoso\n");
+    }
+
+    PQfinish(con); //*cierro conexion
+    fflush(stdin);
+}
+
 
 int addDatos()
 {
@@ -196,13 +230,7 @@ int consultaDatos()
     }
         
     }
-    
-
-
-
-
-
-        fflush(stdin);
+    fflush(stdin);
     close(fd1);
     close(fcons1);
 }
@@ -247,6 +275,67 @@ int updateDatos()
 }
 
 int showtables(){
+   
+    char squery[1234];
+    char bf[900], cad[2024];
 
+         for (int i = 0; i < 100; i++)
+        {
+            // reiniciar la cadena a 0
+            bf[i] = '\0';
+            cad[i] = '\0';
+            squery[i] = '\0';
+        }
+
+    printf("Entrando a la parte de consulta cliente\n");
+    // PARA CONSULTAR DATOS
+    mkfifo("FIFOCONSULTA10", 0666);
+    mkfifo("listaclientes1", 0666);
+
+    fcons1 = open("FIFOCONSULTA10", O_RDONLY);
+    read(fcons1, squery, sizeof(squery));
+    printf("\n esto trae:\n %s\n", squery);
+
+    con = PQsetdbLogin(host, port, NULL, NULL, dataBase, user, passwd);
+    result = PQexec(con, squery);
+
+    printf("Filas:%d, Columnas:%d \n", PQntuples(result), PQnfields(result));
+
+    fd1 = open("listaclientes1", O_WRONLY);
+
+    if (PQntuples(result) == 0)
+    {
+        sprintf(cad,"NO HAY DATOS ");
+        write(fd1, cad, sizeof(cad));
+    }else{
+
+    if (result != NULL)
+    {
+        for (i = 0; i < PQntuples(result); i++)
+        {
+            for (j = 0; j < PQnfields(result); j++)
+            {
+                sprintf(bf, "%s | ", PQgetvalue(result, i, j));
+                strcat(cad, bf);
+            }
+            strcat(cad, "\n");
+        }
+        printf("\n %s", cad);
+
+        write(fd1, cad, sizeof(cad));
+    }
+    else
+    {
+        printf("No hay clientes\n");
+    }
+        
+    }
+    fflush(stdin);
+    close(fd1);
+    close(fcons1);
     
 }
+
+
+
+
