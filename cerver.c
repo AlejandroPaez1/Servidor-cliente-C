@@ -53,7 +53,6 @@ int main()
         //*Articulos
         case 2:
             printf("Entrando a la seccion de articulos\n");
-            menuFactura();
             break;
         //*Facturas
         case 3:
@@ -62,10 +61,6 @@ int main()
         }
     }
 }
-
-
-
-
 
 int menuCliente()
 {
@@ -110,37 +105,6 @@ int menuCliente()
     }
 }
 
-int menuFactura(){
-       mkfifo("SQLDATA1", 0666);
-
-    printf("Entrando al servicio de añadir clientes/facturas\n");
-    con = PQsetdbLogin(host, port, NULL, NULL, dataBase, user, passwd); //*abro conexion
-
-    char sql2[1234], sqltel[900], er[5];
-    int ier, error, tel;
-
-    SQLDAT1 = open("SQLDATA1", O_RDONLY);
-
-    read(SQLDAT1, sql2, sizeof(sql2));
-
-    printf(":::::%s \n", sql2);
-    con = PQexec(con, sql2);
-    close(SQLDAT1);
-
-    if (PQstatus(con) != CONNECTION_OK)
-    {
-        printf("Error de consulta valores invalido\n");
-    }
-    else
-    {
-        printf("Query exitoso\n");
-    }
-
-    PQfinish(con); //*cierro conexion
-    fflush(stdin);
-}
-
-
 int addDatos()
 {
     mkfifo("SQLDATA1", 0666);
@@ -175,17 +139,16 @@ int addDatos()
 int consultaDatos()
 {
 
-   
     char squery[1234];
     char bf[900], cad[2024];
 
-         for (int i = 0; i < 100; i++)
-        {
-            // reiniciar la cadena a 0
-            bf[i] = '\0';
-            cad[i] = '\0';
-            squery[i] = '\0';
-        }
+    for (int i = 0; i < 100; i++)
+    {
+        // reiniciar la cadena a 0
+        bf[i] = '\0';
+        cad[i] = '\0';
+        squery[i] = '\0';
+    }
 
     printf("Entrando a la parte de consulta cliente\n");
     // PARA CONSULTAR DATOS
@@ -205,30 +168,31 @@ int consultaDatos()
 
     if (PQntuples(result) == 0)
     {
-        sprintf(cad,"NO HAY DATOS ");
-        write(fd1, cad, sizeof(cad));
-    }else{
-
-    if (result != NULL)
-    {
-        for (i = 0; i < PQntuples(result); i++)
-        {
-            for (j = 0; j < PQnfields(result); j++)
-            {
-                sprintf(bf, "%s | ", PQgetvalue(result, i, j));
-                strcat(cad, bf);
-            }
-            strcat(cad, "\n");
-        }
-        printf("\n %s", cad);
-
+        sprintf(cad, "NO HAY DATOS ");
         write(fd1, cad, sizeof(cad));
     }
     else
     {
-        printf("No hay clientes\n");
-    }
-        
+
+        if (result != NULL)
+        {
+            for (i = 0; i < PQntuples(result); i++)
+            {
+                for (j = 0; j < PQnfields(result); j++)
+                {
+                    sprintf(bf, "%s | ", PQgetvalue(result, i, j));
+                    strcat(cad, bf);
+                }
+                strcat(cad, "\n");
+            }
+            printf("\n %s", cad);
+
+            write(fd1, cad, sizeof(cad));
+        }
+        else
+        {
+            printf("No hay clientes\n");
+        }
     }
     fflush(stdin);
     close(fd1);
@@ -238,57 +202,55 @@ int consultaDatos()
 int eliminarDatos()
 {
     printf("Entrando al int de eliminar cliente\n");
-  mkfifo("sqldelete1",0666);
+    mkfifo("sqldelete1", 0666);
 
+    int i_id;
+    char sqldelete[500], id[30];
+    con = PQsetdbLogin(host, port, NULL, NULL, dataBase, user, passwd);
 
-      int i_id;
-  char sqldelete[500],id[30];
-  con = PQsetdbLogin(host,port,NULL,NULL,dataBase,user,passwd);
+    i_id = open("sqldelete1", O_RDONLY);
+    read(i_id, id, sizeof(id));
+    close(i_id);
+    sprintf(sqldelete, "DELETE FROM clientes WHERE id_cliente = %s", id);
 
-
-  i_id=open("sqldelete1",O_RDONLY);
-  read(i_id,id,sizeof(id));
-  close(i_id);
-  sprintf(sqldelete, "DELETE FROM clientes WHERE id_cliente = %s", id);
-
-  //sprintf(sqldelete,"delete from clientes where id_cliente = %s;",id);
-  printf("%s\n",sqldelete);
-  PQexec(con,sqldelete);
+    // sprintf(sqldelete,"delete from clientes where id_cliente = %s;",id);
+    printf("%s\n", sqldelete);
+    PQexec(con, sqldelete);
 }
 
 int updateDatos()
 {
     printf("Entrando a la parte de update cliente\n");
-    mkfifo("updatesql",0666);
+    mkfifo("updatesql", 0666);
 
-      int menu3,p;
-  char menu[3],sql[900],dato[500],problema[3];
-  con = PQsetdbLogin(host,port,NULL,NULL,dataBase,user,passwd);
+    int menu3, p;
+    char menu[3], sql[900], dato[500], problema[3];
+    con = PQsetdbLogin(host, port, NULL, NULL, dataBase, user, passwd);
 
-    fd1=open("updatesql",O_RDONLY);
-    read(fd1,sql,sizeof(sql));
-    printf("%s\n",sql);
-    PQexec(con,sql);
+    fd1 = open("updatesql", O_RDONLY);
+    read(fd1, sql, sizeof(sql));
+    printf("%s\n", sql);
+    PQexec(con, sql);
     close(fd1);
-
-
 }
 
-int showtables(){
-   
+int showtables()
+{
+
     char squery[1234];
     char bf[900], cad[2024];
 
-         for (int i = 0; i < 100; i++)
-        {
-            // reiniciar la cadena a 0
-            bf[i] = '\0';
-            cad[i] = '\0';
-            squery[i] = '\0';
-        }
+    for (int i = 0; i < 100; i++)
+    {
+        // reiniciar la cadena a 0
+        bf[i] = '\0';
+        cad[i] = '\0';
+        squery[i] = '\0';
+    }
 
     printf("Entrando a la parte de consulta cliente\n");
     // PARA CONSULTAR DATOS
+
     mkfifo("FIFOCONSULTA10", 0666);
     mkfifo("listaclientes1", 0666);
 
@@ -305,37 +267,33 @@ int showtables(){
 
     if (PQntuples(result) == 0)
     {
-        sprintf(cad,"NO HAY DATOS ");
-        write(fd1, cad, sizeof(cad));
-    }else{
-
-    if (result != NULL)
-    {
-        for (i = 0; i < PQntuples(result); i++)
-        {
-            for (j = 0; j < PQnfields(result); j++)
-            {
-                sprintf(bf, "%s | ", PQgetvalue(result, i, j));
-                strcat(cad, bf);
-            }
-            strcat(cad, "\n");
-        }
-        printf("\n %s", cad);
-
+        sprintf(cad, "NO HAY DATOS ");
         write(fd1, cad, sizeof(cad));
     }
     else
     {
-        printf("No hay clientes\n");
-    }
-        
+
+        if (result != NULL)
+        {
+            for (i = 0; i < PQntuples(result); i++)
+            {
+                for (j = 0; j < PQnfields(result); j++)
+                {
+                    sprintf(bf, "%s | ", PQgetvalue(result, i, j));
+                    strcat(cad, bf);
+                }
+                strcat(cad, "\n");
+            }
+            printf("\n %s", cad);
+
+            write(fd1, cad, sizeof(cad));
+        }
+        else
+        {
+            printf("No hay clientes\n");
+        }
     }
     fflush(stdin);
     close(fd1);
     close(fcons1);
-    
 }
-
-
-
-
